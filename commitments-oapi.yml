@@ -1,0 +1,53 @@
+openapi: 3.0.0
+
+info:
+  title: "Commitments API"
+  description: |
+    todo
+  version: "v0.0.1 - Ethereum Commitments API Specification v0.0.1"
+  contact:
+    name: Ethereum Commitments Github
+    url: https://github.com/ethereum-commitments/commitments-specs/issues
+  license:
+    name: "CC0-1.0"
+    url: "https://creativecommons.org/publicdomain/zero/1.0/"
+
+servers:
+  - url: "{server_url}"
+    variables:
+      server_url:
+        description: "Commitments API URL"
+        default: "http://localhost/"
+
+tags:
+  - name: "Commitments API"
+    description: "Endpoints for managing commitments"
+
+x-constants:
+  MAX_CONSTRAINTS_PER_SLOT: 32
+
+paths:
+  /commitments/v0/todo:
+    post:
+      operationId: "todo"
+      tags:
+        - Commitments API
+      summary: "todo"
+      description: "todo"
+      responses:
+          "200":
+            description: "OK"
+            content: {}
+
+components:
+  schemas:
+    SignedDelegation:
+      type: object
+      properties:
+        message:
+          $ref: '#/components/schemas/Delegation'
+        signature:
+          $ref: './beacon-apis/types/primitive.yaml#/Signature'
+      required:
+        - message
+        - signature
