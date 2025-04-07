@@ -3,14 +3,14 @@ openapi: 3.0.0
 info:
   title: "Commitments API"
   description: |
-    todo
+    Endpoints and schemas for issuing proposer commitments and relevent helper functions.
   version: "v0.0.1 - Ethereum Commitments API Specification v0.0.1"
   contact:
     name: Ethereum Commitments Github
-    url: https://github.com/ethereum-commitments/commitments-specs/issues
+    url: https://github.com/eth-fabric/commitments-specs/issues
   license:
-    name: "CC0-1.0"
-    url: "https://creativecommons.org/publicdomain/zero/1.0/"
+    name: "MIT License and Apache 2.0 License"
+    url: "https://github.com/eth-fabric/commitments-specs/"
 
 servers:
   - url: "{server_url}"
@@ -21,7 +21,7 @@ servers:
 
 tags:
   - name: "Commitments API"
-    description: "Endpoints for managing commitments"
+    description: "Endpoints and schemas for issuing proposer commitments and relevent helper functions."
 
 x-constants:
   MAX_CONSTRAINTS_PER_SLOT: 32
