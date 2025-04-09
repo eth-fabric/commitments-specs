@@ -30,7 +30,10 @@ todo
 
 | **Namespace** | **Method** | **Endpoint** | **Description** |
 | --- | --- | --- | --- |
-| `commitments`   | `POST` | [/commitments/v0/gateway/](./commitments-api.md#endpoint-commitmentsv0todo)        | ... |
+| `commitments`   | `POST` | [/commitments/v0/gateway/commitment](commitments-api.md#postcommitmentrequest)        | ... |
+| `commitments`   | `GET` | [/commitments/v0/gateway/commitment](commitments-api.md#getsignedcommitment)        | ... |
+| `commitments`   | `GET` | [/commitments/v0/gateway/slots](commitments-api.md#getslots)        | ... |
+| `commitments`   | `POST` | [/commitments/v0/gateway/fee](commitments-api.md#getfeeinfo)        | ... |
 
 # Schemas
 ### CommitmentRequest
@@ -117,7 +120,7 @@ class FeeInfo(Container):
 
 # Endpoints
 
-### **commitmentRequest**
+### **postCommitmentRequest**
 
 - **Method:** `POST /commitments/v0/gateway/commitment`
 - **Response:** `SignedCommitment`
