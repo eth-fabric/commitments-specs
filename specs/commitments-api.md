@@ -174,4 +174,100 @@ class FeeInfo(Container):
 ---
 
 # Appendix
-### Example - L1 Inclusion Preconf
+### Example - L1 Inclusion Commitment
+```python
+tx_request = {
+    "tx_data": "0x12345...",
+    "slot": 1000,
+    "chain_id": 1
+}
+
+# Encode the tx_request to the opaque `payload` bytes 
+commitment_request = CommitmentRequest(L1_INCLUSION, json.dumps(tx_request), SOME_SLASHER)
+
+# Submit the commitment request to the gateway
+response = http_post(
+    url="/commitments/v0/gateway/commitment",
+    headers={"Content-Type": "application/json"},
+    body=commitment_request
+)
+
+# Parse the response
+commitment_response = SignedCommitment.decode(response.body)
+preconf_response = json.loads(commitment_response.commitment.payload)
+
+# For an L1 inclusion preconf, CommitmentRequest.payload == Commitment.payload
+assert preconf_response["tx_data"] == tx_request["tx_data"]
+assert preconf_response["slot"] == tx_request["slot"] 
+assert preconf_response["chain_id"] == tx_request["chain_id"]
+```
+
+### Example - Taiyi Preconf Service
+The [Taiyi Preconf Service](https://app.swaggerhub.com/apis-docs/luban-0d2/commitment_apis/v1#/) API can neatly interoperate with the Commitments API. The `SubmitTransactionRequestTypeB` is one of their preconf types:
+
+```Python
+class SubmitTransactionRequestTypeB(Container):
+    request_id: string
+    transaction: string
+```
+
+The response type is called a `PreconfResponseData`:
+
+```python
+class PreconfResponseData(Container):
+    request_id: string
+    commitment: string
+    sequence_num: uint64
+```
+
+`SubmitTransactionRequestTypeB` can be encoded as part of a `CommitmentRequest`:
+
+```python
+taiyi_request = SubmitTransactionRequestTypeB('0729a580-2240-11e6-9eb5-0002a5d5c51b', '0x12345...')
+
+# Encode the protocol-specific type to the opaque `payload` bytes
+commitment_request = CommitmentRequest(TAIYI_TYPE, taiyi_request.encode(), TAIYI_SLASHER)
+
+# Submit the commitment request to the gateway
+response = http_post(
+    url="/commitments/v0/gateway/commitment",
+    headers={"Content-Type": "application/json"},
+    body=commitment_request
+)
+
+# Parse the response into a PreconfResponseData
+commitment_response = SignedCommitment.decode(response.body)
+preconf_response = PreconfResponseData.decode(commitment_response.commitment.payload)
+```
+
+### Example - L2 Frag Commitment
+Execution preconfs commitment to a chain's state after execution. Some low-latency preconf protocols batch together transactions into a single updated state called a "Frag." In this case, there isn't a mapping between a single `CommitmentRequest` and a `SignedCommitment`, rather a commitment will be for multiple requests. 
+
+This example aims to demonstrate how this is still compatible with the Commitments API. Upon receiving each `CommitmentRequest`, the Gateway doesn't immediately respond with a commitment. Instead they apply each `CommitmentRequest.payload` to continuously build the Frag and return one `SignedCommitment` to all of the requesters. The final `SignedCommitment.commitment.request_hash` should be bound to all of the input `CommitmentRequest` objects.
+
+```python
+# ...
+
+# We start with 10 CommitmentRequest objects
+assert len(requests) == 10
+
+responses = []
+
+# Submit the commitment requests to the gateway
+for r in requests:
+    responses.append(http_post(
+        url="/commitments/v0/gateway/commitment",
+        headers={"Content-Type": "application/json"},
+        body=r))
+
+# Assert all responses are identical
+for r in responses[1:]:
+    assert r == responses[0], "All responses should be identical"
+
+# Parse the response
+commitment_response = SignedCommitment.decode(responses[0].body)
+request_hash = commitment_response.commitment.request_hash
+
+# The Commitment.request_hash is composed of the hashes of all the input `CommitmentRequest` objects
+assert request_hash == hash([hash(r) for r in requests])
+```
