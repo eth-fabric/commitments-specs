@@ -1,29 +1,33 @@
 # Commitments API Specification
 
 ## Abstract
-
-todo
+The Commitments API is a set of endpoints for issuing proposer commitments.
 
 ## Motivation
+The proposer commitments space is rapidly evolving, with preconfirmations representing just one early example. By providing a standardized Commitments API for users / applications / wallets to interact with commitment issuers, we can establish a unified interface that scales as new protocols enter with novel commitment types. This approach aims to prevent fragmentation and keeps complexity manageable as the ecosystem grows.
 
-todo
+## API Goals
+- Support both L1 and L2 commitments
+- Support *generic* proposer commitments rather than just preconfs
+- Simple wallet integration
+- Support for users to learn about capabilities / fees
 
+## Terminology
+- **Commitment**: A binding and objectively verifiable promise made about a chain.
+- **Proposer Commitment**: A commitment made by an L1 proposer, e.g., I promise to include transaction with hash `0x1234...` in an L1 block during slot 1000. 
+- **Gateway**: The party with committment-issuing rights granted by the Proposer.
+- **Slasher**: A smart contract containing logic to arbitrate disputes and slash collateral should commitments be broken. 
 
 ## API Scope
-
 **In Scope**
-
-todo
+- Requesting a commitment to be made
+- Requesting to see a previously signed commitment
+- Requesting to see a the upcoming capabilities of a Gateway
+- Requesting fee information for a specific commitment request
 
 **Out of Scope**
 
-todo
-
-# Terminology
-
-| Term           | Description                                                                                                                                    |
-|----------------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| Todo      | todo  |
+The [Constraints Specs](https://github.com/eth-fabric/constraints-specs) and [API](https://eth-fabric.github.io/constraints-specs/).
 
 
 # API Summary
