@@ -104,14 +104,6 @@ class Offering(Container):
     commitment_types: list[uint64]
 ```
 
-### FeeInfoRequest
-```Python
-# Request body for querying fee information for a specific commitment request
-class FeeInfoRequest(Container):
-    # The commitment requests fee info is pertaining to
-    commitment_request: CommitmentRequest
-```
-
 ### FeeInfo
 ```Python
 # Response body for fee information
@@ -134,7 +126,11 @@ class FeeInfo(Container):
 
 - **Description**
 
-    todo
+    A `CommitmentRequest` contains an opaque `payload` bytes input that can be decoded according to the `commitment_type`. By making a request, the user / app / wallet is asking for the Gateway to make a commitment that is enforceable via the specified `slasher` contract.
+
+    Each `commitment_type` has its own rules for how a Gateway maps a `CommitmentRequest.payload` to a `Commitment.payload`. The `Commitment.request_hash` field is used to bind the `Commitment` to a specific `CommitmentRequest`, however this is not required to correspond 1:1. In the [appendix](commitments-api.md#appendix), we show how a `Commitment` can correspond to multiple `CommitmentRequest` containers by chaining their hashes.
+
+    The `SignedCommitment` response containts the ECDSA signature over the `Commitment`. The Commitments API doesn't specify the Gateway's key, but when used in conjunction with the Constraints API, the expectation is the key of the Gateway's `committer` address is used.
 
 ---
 
@@ -146,7 +142,7 @@ class FeeInfo(Container):
 
 - **Description**
 
-    todo
+    When supplied with a valid `request_hash`, this endpoint responds with the `SignedCommitment` object containing the same `SignedCommitment.Commitment.request_hash`. 
 
 ---
 
@@ -158,8 +154,9 @@ class FeeInfo(Container):
 
 - **Description**
 
-    todo
-
+    When called, the Gateway returns a `SlotInfo` for each upcoming L1 slot in the current or upcoming epoch. Each `SlotInfo` contains a list of `Offering` objects which specify the types of commitments they offer for a given chain, e.g., inclusion preconfs for the L1. 
+    
+    It should be noted that this endpoint does not provide guarantees that the Gateway is actually capable of providing these. For example, for proposer commitments that require delegations, the user should also consult the Constraints API to verify if the Gateway received delegations for the slot in question.  
 ---
 
 ### **getFeeInfo**
@@ -168,10 +165,13 @@ class FeeInfo(Container):
 - **Response:** `FeeInfo`
 - **Headers:**
     - `Content-Type: application/json`
-- **Body:** JSON object of type `FeeInfoRequest`
+- **Body:** JSON object of type `CommitmentRequest`
 
 - **Description**
 
-    todo
+    Since each proposer commitment protocol may have differing pricing mechanisms, i.e., per-request or subscription based, this endpoint is intentionally left generic. Users submit a `CommitmentRequest` and receive a `FeeInfo` object containing opaque `payload` bytes and a `commitment_type` to decode the `payload` into protocol-specific pricing information.
 
 ---
+
+# Appendix
+### Example - L1 Inclusion Preconf
