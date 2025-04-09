@@ -34,10 +34,10 @@ The [Constraints Specs](https://github.com/eth-fabric/constraints-specs) and [AP
 
 | **Namespace** | **Method** | **Endpoint** | **Description** |
 | --- | --- | --- | --- |
-| `commitments`   | `POST` | [/commitments/v0/gateway/commitment](commitments-api.md#postcommitmentrequest)        | ... |
-| `commitments`   | `GET` | [/commitments/v0/gateway/commitment](commitments-api.md#getsignedcommitment)        | ... |
-| `commitments`   | `GET` | [/commitments/v0/gateway/slots](commitments-api.md#getslots)        | ... |
-| `commitments`   | `POST` | [/commitments/v0/gateway/fee](commitments-api.md#getfeeinfo)        | ... |
+| `commitments`   | `POST` | [/commitments/v0/gateway/commitment](commitments-api.md#postcommitmentrequest)        | Request a new `SignedCommitment`  |
+| `commitments`   | `GET` | [/commitments/v0/gateway/commitment](commitments-api.md#getsignedcommitment)        | Request an old `SignedCommitment` |
+| `commitments`   | `GET` | [/commitments/v0/gateway/slots](commitments-api.md#getslots)        | Get Gateway information for upcoming slots |
+| `commitments`   | `POST` | [/commitments/v0/gateway/fee](commitments-api.md#getfeeinfo)        | Get commitment fee information |
 
 # Schemas
 ### CommitmentRequest
@@ -128,9 +128,9 @@ class FeeInfo(Container):
 
     A `CommitmentRequest` contains an opaque `payload` bytes input that can be decoded according to the `commitment_type`. By making a request, the user / app / wallet is asking for the Gateway to make a commitment that is enforceable via the specified `slasher` contract.
 
-    Each `commitment_type` has its own rules for how a Gateway maps a `CommitmentRequest.payload` to a `Commitment.payload`. The `Commitment.request_hash` field is used to bind the `Commitment` to a specific `CommitmentRequest`, however this is not required to correspond 1:1. In the [appendix](commitments-api.md#appendix), we show how a `Commitment` can correspond to multiple `CommitmentRequest` containers by chaining their hashes.
+    Each `commitment_type` has its own rules for how a Gateway maps a `CommitmentRequest.payload` to a `Commitment.payload`. The `Commitment.request_hash` field is used to bind the `Commitment` to a specific `CommitmentRequest`, however this is not required to correspond 1:1. In the [appendix](commitments-api.md#example---l2-frag-commitment), we show how a `Commitment` can correspond to multiple `CommitmentRequest` containers by chaining their hashes.
 
-    The `SignedCommitment` response containts the ECDSA signature over the `Commitment`. The Commitments API doesn't specify the Gateway's key, but when used in conjunction with the Constraints API, the expectation is the key of the Gateway's `committer` address is used.
+    The `SignedCommitment` response contains the ECDSA signature over the `Commitment`. The Commitments API doesn't specify the Gateway's key, but when used in conjunction with the Constraints API, the expectation is the key of the Gateway's `committer` address is used.
 
 ---
 
@@ -241,7 +241,7 @@ preconf_response = PreconfResponseData.decode(commitment_response.commitment.pay
 ```
 
 ### Example - L2 Frag Commitment
-Execution preconfs commitment to a chain's state after execution. Some low-latency preconf protocols batch together transactions into a single updated state called a "Frag." In this case, there isn't a mapping between a single `CommitmentRequest` and a `SignedCommitment`, rather a commitment will be for multiple requests. 
+Execution preconfs commit to a chain's state after execution. Some low-latency preconf protocols batch together transactions into a single updated state called a "Frag." In this case, there isn't a mapping between a single `CommitmentRequest` and a `SignedCommitment`, rather a commitment will be for multiple requests. 
 
 This example aims to demonstrate how this is still compatible with the Commitments API. Upon receiving each `CommitmentRequest`, the Gateway doesn't immediately respond with a commitment. Instead they apply each `CommitmentRequest.payload` to continuously build the Frag and return one `SignedCommitment` to all of the requesters. The final `SignedCommitment.commitment.request_hash` should be bound to all of the input `CommitmentRequest` objects.
 
