@@ -30,9 +30,84 @@ todo
 
 | **Namespace** | **Method** | **Endpoint** | **Description** |
 | --- | --- | --- | --- |
-| `commitments`   | `POST` | [/commitments/v0/todo](./commitments-api.md#endpoint-commitmentsv0todo)        | ... |
+| `commitments`   | `POST` | [/commitments/v0/gateway/](./commitments-api.md#endpoint-commitmentsv0todo)        | ... |
 
-# Commitments API Endpoints
+# Schemas
+### CommitmentRequest
+```Python
+# A CommitmentRequest message created by a user
+class CommitmentRequest(Container):
+    # Type of commitment being requested
+    commitment_type: uint64
+    # Opaque input bytes used as part of the commitment
+    payload: Bytes
+    # Slasher contract for resolving commitment disputes
+    slasher: Address
+```
+
+### Commitment
+```Python
+# A Commitment message responding to a CommitmentRequest
+class Commitment(Container):
+    # The type of commitment being made
+    commitment_type: uint64
+    # Opaque payload bytes of the commitment
+    payload: Bytes
+    # Hash of the CommitmentRequest this Commitment is for
+    request_hash: uint64
+    # Slasher contract for resolving commitment disputes
+    slasher: Address
+```
+
+### SignedCommitment
+```Python
+# A signed Commitment binding to a CommitmentRequest
+class SignedCommitment(Container):
+    # The commitment message that was signed
+    commitment: Commitment
+    # The signature of the commitment message
+    signature: ECDSASignature
+```
+
+### SlotInfo
+```Python
+# Information about a Gateway's offerings at a specific slot
+class SlotInfo(Container):
+    # The L1 slot number 
+    slot: Slot
+    # The list of chain offerings
+    offerings: list[Offering]
+```
+
+### Offering
+```Python
+# Specifies which commitments can be made for a specific chain
+class Offering(Container):
+    # The id of the target chain
+    chain_id: uint64
+    # The types of commitments offered for the target chain
+    commitment_types: list[uint64]
+```
+
+### FeeInfoRequest
+```Python
+# Request body for querying fee information for a specific commitment request
+class FeeInfoRequest(Container):
+    # The commitment requests fee info is pertaining to
+    commitment_request: CommitmentRequest
+```
+
+### FeeInfo
+```Python
+# Response body for fee information
+class FeeInfo(Container):
+    # Opaque bytes containing fee info related to the commitment type
+    payload: Bytes
+    # Type of commitment being requested
+    commitment_type: uint64
+```
+
+# Endpoints
 
 ### Endpoint: `/commitments/v0/todo`
 
@@ -47,9 +122,23 @@ Overview todo
 - **Schema**
 
     ```python
-    # A signed "bundle" of constraints.
-    class SomeClass(Container):
-        pass
+    # A Commitment message binding an opaque payload to a slasher contract
+    class Commitment(Container):
+        # The type of commitment
+        commitmentType: uint64
+        # The payload of the commitment
+        payload: Bytes
+        # The address of the slasher contract
+        slasher: Address
+
+    # A commitment message signed by a delegate's ECDSA key
+    class SignedCommitment(Container):
+        # The commitment message
+        commitment: Commitment
+        # The L1 slot number the commitment applies to
+        slot: uint64
+        # The signature of the commitment message
+        signature: ECDSASignature
     ```
 
 - **Description**
