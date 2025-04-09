@@ -79,6 +79,14 @@ class SlotInfo(Container):
     offerings: list[Offering]
 ```
 
+### SlotInfoResponse
+```Python
+# Repsonse containing multiple SlotInfo
+class SlotInfoResponse(Container):
+    # A list of slot infos
+    slots: list[SlotInfo]
+```
+
 ### Offering
 ```Python
 # Specifies which commitments can be made for a specific chain
@@ -109,38 +117,54 @@ class FeeInfo(Container):
 
 # Endpoints
 
-### Endpoint: `/commitments/v0/todo`
+### **commitmentRequest**
 
-Overview todo
-
-- **Method:** `POST`
-- **Response:** Empty
+- **Method:** `POST /commitments/v0/gateway/commitment`
+- **Response:** `SignedCommitment`
 - **Headers:**
     - `Content-Type: application/json`
-- **Body:** JSON object of type `SignedConstraints[]`
-
-- **Schema**
-
-    ```python
-    # A Commitment message binding an opaque payload to a slasher contract
-    class Commitment(Container):
-        # The type of commitment
-        commitmentType: uint64
-        # The payload of the commitment
-        payload: Bytes
-        # The address of the slasher contract
-        slasher: Address
-
-    # A commitment message signed by a delegate's ECDSA key
-    class SignedCommitment(Container):
-        # The commitment message
-        commitment: Commitment
-        # The L1 slot number the commitment applies to
-        slot: uint64
-        # The signature of the commitment message
-        signature: ECDSASignature
-    ```
+- **Body:** JSON object of type `CommitmentRequest`
 
 - **Description**
 
     todo
+
+---
+
+### **getSignedCommitment**
+
+- **Method:** `GET /commitments/v0/gateway/commitment/{request_hash}`
+- **Response:** `SignedCommitment`
+- **Body:** `None`
+
+- **Description**
+
+    todo
+
+---
+
+### **getSlots**
+
+- **Method:** `GET /commitments/v0/gateway/slots`
+- **Response:** `SlotInfoResponse`
+- **Body:** `None`
+
+- **Description**
+
+    todo
+
+---
+
+### **getFeeInfo**
+
+- **Method:** `POST /commitments/v0/gateway/fee`
+- **Response:** `FeeInfo`
+- **Headers:**
+    - `Content-Type: application/json`
+- **Body:** JSON object of type `FeeInfoRequest`
+
+- **Description**
+
+    todo
+
+---
