@@ -88,7 +88,7 @@ class SlotInfo(Container):
 
 ### SlotInfoResponse
 ```Python
-# Repsonse containing multiple SlotInfo
+# Response containing multiple SlotInfo
 class SlotInfoResponse(Container):
     # A list of slot infos
     slots: list[SlotInfo]
