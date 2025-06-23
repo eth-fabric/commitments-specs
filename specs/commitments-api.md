@@ -61,7 +61,7 @@ class Commitment(Container):
     # Opaque payload bytes of the commitment
     payload: Bytes
     # Hash of the CommitmentRequest this Commitment is for
-    request_hash: uint64
+    request_hash: Bytes32
     # Slasher contract for resolving commitment disputes
     slasher: Address
 ```
