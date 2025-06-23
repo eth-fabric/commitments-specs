@@ -27,9 +27,9 @@ x-constants:
   MAX_CONSTRAINTS_PER_SLOT: 32
 
 paths:
-  /commitments/v0/gateway/commitment:
+  /commitments/v0/gateway/commitmentRequest:
     post:
-      operationId: "postCommitment"
+      operationId: "postCommitmentRequest"
       tags:
         - Commitments API
       summary: "Request a new SignedCommitment"
@@ -58,9 +58,9 @@ paths:
           description: "Bad Request - Invalid commitment request"
         "500":
           description: "Internal Server Error"
-  /commitments/v0/gateway/commitment/{request_hash}:
+  /commitments/v0/gateway/commitmentResult/{request_hash}:
     get:
-      operationId: "getCommitment"
+      operationId: "getCommitmentResult"
       tags:
         - Commitments API
       summary: "Request an old SignedCommitment"
