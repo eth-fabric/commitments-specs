@@ -608,4 +608,5 @@ paths:
                   - jsonrpc
                   - error
                   - id
-components: {}
+components:
+  schemas: {}
