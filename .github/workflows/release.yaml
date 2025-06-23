@@ -13,9 +13,9 @@ jobs:
       - uses: actions/setup-node@v2
       - run: npm i -g @apidevtools/swagger-cli@4
       - name: Bundle yaml spec
-        run: "swagger-cli bundle ./commitments-oapi.yml -r -t yaml -o ./deploy/commitments-oapi.yml"
+        run: "swagger-cli bundle ./commitments-jsonrpc.yml -r -t yaml -o ./deploy/commitments-jsonrpc.yml"
       - name: Bundle json spec
-        run: "swagger-cli bundle ./commitments-oapi.yml -r -t json -o ./deploy/commitments-oapi.json"
+        run: "swagger-cli bundle ./commitments-jsonrpc.yml -r -t json -o ./deploy/commitments-jsonrpc.json"
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -32,8 +32,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./deploy/commitments-oapi.yml
-          asset_name: commitments-oapi.yml
+          asset_path: ./deploy/commitments-jsonrpc.yml
+          asset_name: commitments-jsonrpc.yml
           asset_content_type: text/x-yaml
       - name: Upload Json Bundle
         uses: actions/upload-release-asset@v1
@@ -41,8 +41,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./deploy/commitments-oapi.json
-          asset_name: commitments-oapi.json
+          asset_path: ./deploy/commitments-jsonrpc.json
+          asset_name: commitments-jsonrpc.json
           asset_content_type: application/json
       - name: Rollback Release
         if: failure()

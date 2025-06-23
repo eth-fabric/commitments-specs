@@ -19,9 +19,9 @@ jobs:
         run: npm i -g @apidevtools/swagger-cli@4 @redocly/cli@1.0.0-beta.111
 
       - name: Lint spec
-        run: redocly lint ./commitments-oapi.yml
+        run: redocly lint ./commitments-jsonrpc.yml
 
       - name: Bundle spec
-        run: swagger-cli bundle commitments-oapi.yml -r -t yaml -o deploy/commitments-oapi.yml
+        run: swagger-cli bundle commitments-jsonrpc.yml -r -t yaml -o deploy/commitments-jsonrpc.yml
         
         
