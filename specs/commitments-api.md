@@ -34,8 +34,8 @@ The [Constraints Specs](https://github.com/eth-fabric/constraints-specs) and [AP
 
 | **Namespace** | **Method** | **Endpoint** | **Description** |
 | --- | --- | --- | --- |
-| `commitments`   | `POST` | [/commitments/v0/gateway/commitment](commitments-api.md#postcommitmentrequest)        | Request a new `SignedCommitment`  |
-| `commitments`   | `GET` | [/commitments/v0/gateway/commitment](commitments-api.md#getsignedcommitment)        | Request an old `SignedCommitment` |
+| `commitments`   | `POST` | [/commitments/v0/gateway/commitmentRequest](commitments-api.md#postcommitmentrequest)        | Request a new `SignedCommitment`  |
+| `commitments`   | `GET` | [/commitments/v0/gateway/commitmentResult](commitments-api.md#getcommitmentresult)        | Request an old `SignedCommitment` |
 | `commitments`   | `GET` | [/commitments/v0/gateway/slots](commitments-api.md#getslots)        | Get Gateway information for upcoming slots |
 | `commitments`   | `POST` | [/commitments/v0/gateway/fee](commitments-api.md#getfeeinfo)        | Get commitment fee information |
 
@@ -61,7 +61,7 @@ class Commitment(Container):
     # Opaque payload bytes of the commitment
     payload: Bytes
     # Hash of the CommitmentRequest this Commitment is for
-    request_hash: uint64
+    request_hash: Bytes32
     # Slasher contract for resolving commitment disputes
     slasher: Address
 ```
@@ -118,7 +118,7 @@ class FeeInfo(Container):
 
 ### **postCommitmentRequest**
 
-- **Method:** `POST /commitments/v0/gateway/commitment`
+- **Method:** `POST /commitments/v0/gateway/commitmentRequest`
 - **Response:** `SignedCommitment`
 - **Headers:**
     - `Content-Type: application/json`
@@ -134,9 +134,9 @@ class FeeInfo(Container):
 
 ---
 
-### **getSignedCommitment**
+### **getCommitmentResult**
 
-- **Method:** `GET /commitments/v0/gateway/commitment/{request_hash}`
+- **Method:** `GET /commitments/v0/gateway/commitmentResult/{request_hash}`
 - **Response:** `SignedCommitment`
 - **Body:** `None`
 

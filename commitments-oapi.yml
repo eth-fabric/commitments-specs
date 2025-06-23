@@ -27,9 +27,9 @@ x-constants:
   MAX_CONSTRAINTS_PER_SLOT: 32
 
 paths:
-  /commitments/v0/gateway/commitment:
+  /commitments/v0/gateway/commitmentRequest:
     post:
-      operationId: "postCommitment"
+      operationId: "postCommitmentRequest"
       tags:
         - Commitments API
       summary: "Request a new SignedCommitment"
@@ -58,9 +58,9 @@ paths:
           description: "Bad Request - Invalid commitment request"
         "500":
           description: "Internal Server Error"
-  /commitments/v0/gateway/commitment/{request_hash}:
+  /commitments/v0/gateway/commitmentResult/{request_hash}:
     get:
-      operationId: "getCommitment"
+      operationId: "getCommitmentResult"
       tags:
         - Commitments API
       summary: "Request an old SignedCommitment"
@@ -71,8 +71,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: uint64
+            type: string
+            format: bytes32
           description: Hash of the CommitmentRequest to retrieve
           example: "0x1234567890123456789012345678901234567890000000000000000000000000"
       responses:
@@ -180,6 +180,7 @@ components:
           example: ""
         request_hash:
           type: string
+          format: bytes32
           description: Hash of the CommitmentRequest this Commitment is for
           example: "0x1234567890123456789012345678901234567890000000000000000000000000"
         slasher:
