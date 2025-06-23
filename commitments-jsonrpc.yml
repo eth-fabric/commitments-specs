@@ -608,3 +608,4 @@ paths:
                   - jsonrpc
                   - error
                   - id
+components: {}
