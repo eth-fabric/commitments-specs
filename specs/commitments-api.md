@@ -36,7 +36,7 @@ The [Constraints Specs](https://github.com/eth-fabric/constraints-specs) and [AP
 | --- | --- | --- | --- |
 | `commitments`   | `POST` | [/commitments/v0/gateway/commitmentRequest](commitments-api.md#postcommitmentrequest)        | Request a new `SignedCommitment`  |
 | `commitments`   | `GET` | [/commitments/v0/gateway/commitmentResult](commitments-api.md#getcommitmentresult)        | Request an old `SignedCommitment` |
-| `commitments`   | `GET` | [/commitments/v0/gateway/slots](commitments-api.md#getslots)        | Get Gateway information for upcoming slots |
+| `commitments`   | `GET` | [/commitments/v0/gateway/slots](commitments-api.md#slots)        | Get Gateway information for upcoming slots |
 | `commitments`   | `POST` | [/commitments/v0/gateway/fee](commitments-api.md#getfeeinfo)        | Get commitment fee information |
 
 # Schemas
@@ -116,62 +116,182 @@ class FeeInfo(Container):
 
 # Endpoints
 
-### **postCommitmentRequest**
+### **commitmentRequest**
 
-- **Method:** `POST /commitments/v0/gateway/commitmentRequest`
-- **Response:** `SignedCommitment`
-- **Headers:**
-    - `Content-Type: application/json`
-- **Body:** JSON object of type `CommitmentRequest`
+Returns a new `SignedCommitment` for the given commitment request.
 
-- **Description**
+A `CommitmentRequest` contains an opaque `payload` bytes input that can be decoded according to the `commitment_type`. By making a request, the user / app / wallet is asking for the Gateway to make a commitment that is enforceable via the specified `slasher` contract.
 
-    A `CommitmentRequest` contains an opaque `payload` bytes input that can be decoded according to the `commitment_type`. By making a request, the user / app / wallet is asking for the Gateway to make a commitment that is enforceable via the specified `slasher` contract.
+Each `commitment_type` has its own rules for how a Gateway maps a `CommitmentRequest.payload` to a `Commitment.payload`. The `Commitment.request_hash` field is used to bind the `Commitment` to a specific `CommitmentRequest`, however this is not required to correspond 1:1. In the [appendix](commitments-api.md#example---l2-frag-commitment), we show how a `Commitment` can correspond to multiple `CommitmentRequest` containers by chaining their hashes.
 
-    Each `commitment_type` has its own rules for how a Gateway maps a `CommitmentRequest.payload` to a `Commitment.payload`. The `Commitment.request_hash` field is used to bind the `Commitment` to a specific `CommitmentRequest`, however this is not required to correspond 1:1. In the [appendix](commitments-api.md#example---l2-frag-commitment), we show how a `Commitment` can correspond to multiple `CommitmentRequest` containers by chaining their hashes.
+The `SignedCommitment` response contains the ECDSA signature over the `Commitment`. The Commitments API doesn't specify the Gateway's key, but when used in conjunction with the Constraints API, the expectation is the key of the Gateway's `committer` address is used.
 
-    The `SignedCommitment` response contains the ECDSA signature over the `Commitment`. The Commitments API doesn't specify the Gateway's key, but when used in conjunction with the Constraints API, the expectation is the key of the Gateway's `committer` address is used.
+**Parameters**
+
+- `commitment_type` (uint64): Type of commitment being requested
+- `payload` (bytes): Opaque input bytes used as part of the commitment
+- `slasher` (address): Slasher contract for resolving commitment disputes
+
+**Returns**
+
+`SignedCommitment` - A signed commitment containing the commitment and ECDSA signature
+
+
+**Example Request**
+```bash
+curl -X POST --data '{"jsonrpc":"2.0","method":"commitmentRequest","params":[{"commitment_type":1,"payload":"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef","slasher":"0x1234567890123456789012345678901234567890"}],"id":1}'
+```
+
+**Example Response**
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "commitment": {
+      "commitment_type": 1,
+      "payload": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+      "request_hash": "0x1234567890123456789012345678901234567890000000000000000000000000",
+      "slasher": "0x1234567890123456789012345678901234567890"
+    },
+    "signature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1b"
+  }
+}
+```
+
+---
+
+### **commitmentResult**
+
+Returns a previously signed `SignedCommitment` for the given request hash.
+
+When supplied with a valid `request_hash`, this endpoint responds with the `SignedCommitment` object containing the same `SignedCommitment.Commitment.request_hash`.
+
+**Parameters**
+
+- `request_hash` (bytes32): Hash of the CommitmentRequest to retrieve
+
+**Returns**
+
+`SignedCommitment` - A signed commitment containing the commitment and ECDSA signature
+
+**Example Request**
+```bash
+curl -X POST --data '{"jsonrpc":"2.0","method":"commitmentResult","params":[{"request_hash":"0x1234567890123456789012345678901234567890000000000000000000000000"}],"id":1}'
+```
+
+**Example Response**
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "commitment": {
+      "commitment_type": 1,
+      "payload": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+      "request_hash": "0x1234567890123456789012345678901234567890000000000000000000000000",
+      "slasher": "0x1234567890123456789012345678901234567890"
+    },
+    "signature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1b"
+  }
+}
+```
 
 ---
 
-### **getCommitmentResult**
+### **slots**
 
-- **Method:** `GET /commitments/v0/gateway/commitmentResult/{request_hash}`
-- **Response:** `SignedCommitment`
-- **Body:** `None`
+Returns Gateway information for upcoming slots.
 
-- **Description**
+When called, the Gateway returns a `SlotInfo` for each upcoming L1 slot in the current or upcoming epoch. Each `SlotInfo` contains a list of `Offering` objects which specify the types of commitments they offer for a given chain, e.g., inclusion preconfs for the L1.
 
-    When supplied with a valid `request_hash`, this endpoint responds with the `SignedCommitment` object containing the same `SignedCommitment.Commitment.request_hash`. 
+It should be noted that this endpoint does not provide guarantees that the Gateway is actually capable of providing these. For example, for proposer commitments that require delegations, the user should also consult the Constraints API to verify if the Gateway received delegations for the slot in question.
+
+**Parameters**
+
+None
+
+**Returns**
+
+`SlotInfoResponse` - A list of slot infos containing offerings for upcoming slots
+
+**Example Request**
+```bash
+curl -X POST --data '{"jsonrpc":"2.0","method":"slots","params":[],"id":1}'
+```
+
+**Example Response**
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "slots": [
+      {
+        "slot": 1000,
+        "offerings": [
+          {
+            "chain_id": 1,
+            "commitment_types": [1, 2]
+          },
+          {
+            "chain_id": 10,
+            "commitment_types": [1]
+          }
+        ]
+      },
+      {
+        "slot": 1001,
+        "offerings": [
+          {
+            "chain_id": 1,
+            "commitment_types": [1, 2]
+          },
+          {
+            "chain_id": 10,
+            "commitment_types": [1]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
 ---
 
-### **getSlots**
+### **fee**
 
-- **Method:** `GET /commitments/v0/gateway/slots`
-- **Response:** `SlotInfoResponse`
-- **Body:** `None`
+Returns commitment fee information for the given commitment request.
 
-- **Description**
+Since each proposer commitment protocol may have differing pricing mechanisms, i.e., per-request or subscription based, this endpoint is intentionally left generic. Users submit a `CommitmentRequest` and receive a `FeeInfo` object containing opaque `payload` bytes and a `commitment_type` to decode the `payload` into protocol-specific pricing information.
 
-    When called, the Gateway returns a `SlotInfo` for each upcoming L1 slot in the current or upcoming epoch. Each `SlotInfo` contains a list of `Offering` objects which specify the types of commitments they offer for a given chain, e.g., inclusion preconfs for the L1. 
-    
-    It should be noted that this endpoint does not provide guarantees that the Gateway is actually capable of providing these. For example, for proposer commitments that require delegations, the user should also consult the Constraints API to verify if the Gateway received delegations for the slot in question.  
----
+**Parameters**
 
-### **getFeeInfo**
+- `commitment_type` (uint64): Type of commitment being requested
+- `payload` (bytes): Opaque input bytes used as part of the commitment
+- `slasher` (address): Slasher contract for resolving commitment disputes
 
-- **Method:** `POST /commitments/v0/gateway/fee`
-- **Response:** `FeeInfo`
-- **Headers:**
-    - `Content-Type: application/json`
-- **Body:** JSON object of type `CommitmentRequest`
+**Returns**
 
-- **Description**
+`FeeInfo` - Fee information containing opaque payload and commitment type
 
-    Since each proposer commitment protocol may have differing pricing mechanisms, i.e., per-request or subscription based, this endpoint is intentionally left generic. Users submit a `CommitmentRequest` and receive a `FeeInfo` object containing opaque `payload` bytes and a `commitment_type` to decode the `payload` into protocol-specific pricing information.
+**Example Request**
+```bash
+curl -X POST --data '{"jsonrpc":"2.0","method":"fee","params":[{"commitment_type":1,"payload":"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef","slasher":"0x1234567890123456789012345678901234567890"}],"id":1}'
+```
 
----
+**Example Response**
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "payload": "0xfee1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+    "commitment_type": 1
+  }
+}
+```
 
 # Appendix
 ### Example - L1 Inclusion Commitment
@@ -186,14 +306,22 @@ tx_request = {
 commitment_request = CommitmentRequest(L1_INCLUSION, json.dumps(tx_request), SOME_SLASHER)
 
 # Submit the commitment request to the gateway
+jsonrpc_request = {
+    "jsonrpc": "2.0",
+    "method": "commitmentRequest",
+    "params": [commitment_request],
+    "id": 1
+}
+
 response = http_post(
-    url="/commitments/v0/gateway/commitment",
+    url="/commitmentRequest",
     headers={"Content-Type": "application/json"},
-    body=commitment_request
+    body=jsonrpc_request
 )
 
 # Parse the response
-commitment_response = SignedCommitment.decode(response.body)
+jsonrpc_response = json.loads(response.body)
+commitment_response = SignedCommitment.decode(jsonrpc_response["result"])
 preconf_response = json.loads(commitment_response.commitment.payload)
 
 # For an L1 inclusion preconf, CommitmentRequest.payload == Commitment.payload
@@ -229,14 +357,22 @@ taiyi_request = SubmitTransactionRequestTypeB('0729a580-2240-11e6-9eb5-0002a5d5c
 commitment_request = CommitmentRequest(TAIYI_TYPE, taiyi_request.encode(), TAIYI_SLASHER)
 
 # Submit the commitment request to the gateway
+jsonrpc_request = {
+    "jsonrpc": "2.0",
+    "method": "commitmentRequest",
+    "params": [commitment_request],
+    "id": 1
+}
+
 response = http_post(
-    url="/commitments/v0/gateway/commitment",
+    url="/commitmentRequest",
     headers={"Content-Type": "application/json"},
-    body=commitment_request
+    body=jsonrpc_request
 )
 
 # Parse the response into a PreconfResponseData
-commitment_response = SignedCommitment.decode(response.body)
+jsonrpc_response = json.loads(response.body)
+commitment_response = SignedCommitment.decode(jsonrpc_response["result"])
 preconf_response = PreconfResponseData.decode(commitment_response.commitment.payload)
 ```
 
@@ -255,17 +391,24 @@ responses = []
 
 # Submit the commitment requests to the gateway
 for r in requests:
+    jsonrpc_request = {
+        "jsonrpc": "2.0",
+        "method": "commitmentRequest",
+        "params": [r],
+        "id": 1
+    }
     responses.append(http_post(
-        url="/commitments/v0/gateway/commitment",
+        url="/commitmentRequest",
         headers={"Content-Type": "application/json"},
-        body=r))
+        body=jsonrpc_request))
 
 # Assert all responses are identical
 for r in responses[1:]:
     assert r == responses[0], "All responses should be identical"
 
 # Parse the response
-commitment_response = SignedCommitment.decode(responses[0].body)
+jsonrpc_response = json.loads(responses[0].body)
+commitment_response = SignedCommitment.decode(jsonrpc_response["result"])
 request_hash = commitment_response.commitment.request_hash
 
 # The Commitment.request_hash is composed of the hashes of all the input `CommitmentRequest` objects
