@@ -27,7 +27,7 @@ x-constants:
   MAX_CONSTRAINTS_PER_SLOT: 32
 
 paths:
-  commitmentRequest:
+  /commitmentRequest:
     post:
       operationId: "commitmentRequest"
       tags:
@@ -180,7 +180,7 @@ paths:
                   - jsonrpc
                   - error
                   - id
-  commitmentResult:
+  /commitmentResult:
     post:
       operationId: "commitmentResult"
       tags:
@@ -335,7 +335,7 @@ paths:
                   - jsonrpc
                   - error
                   - id
-  slots:
+  /slots:
     post:
       operationId: "slots"
       tags:
@@ -461,7 +461,7 @@ paths:
                   - jsonrpc
                   - error
                   - id
-  fee:
+  /fee:
     post:
       operationId: "fee"
       tags:
@@ -608,174 +608,3 @@ paths:
                   - jsonrpc
                   - error
                   - id
-
-components:
-  schemas:
-    CommitmentRequest:
-      type: object
-      properties:
-        commitment_type:
-          type: integer
-          format: uint64
-          description: The type of commitment
-          example: 1
-        payload:
-          type: string
-          format: byte
-          description: Opaque input bytes used as part of the commitment
-          example: ""
-        slasher:
-          type: string
-          description: Slasher contract for resolving commitment disputes
-          example: "0x1234567890123456789012345678901234567890"
-      required:
-        - commitment_type
-        - payload
-        - slasher
-      example:
-        commitment_type: 1
-        payload: ""
-        slasher: "0x1234567890123456789012345678901234567890"
-
-    Commitment:
-      type: object
-      properties:
-        commitment_type:
-          type: integer
-          format: uint64
-          description: The type of commitment
-          example: 1
-        payload:
-          type: string
-          format: byte
-          description: Opaque payload bytes of the commitment
-          example: ""
-        request_hash:
-          type: string
-          format: bytes32
-          description: Hash of the CommitmentRequest this Commitment is for
-          example: "0x1234567890123456789012345678901234567890000000000000000000000000"
-        slasher:
-          type: string
-          description: Slasher contract for resolving commitment disputes
-          example: "0x1234567890123456789012345678901234567890"
-      required:
-        - commitment_type
-        - payload
-        - request_hash
-        - slasher
-      example:
-        commitment_type: 1
-        payload: ""
-        request_hash: "0x1234567890123456789012345678901234567890000000000000000000000000"
-        slasher: "0x1234567890123456789012345678901234567890"
-
-    SignedCommitment:
-      type: object
-      properties:
-        commitment:
-          $ref: '#/components/schemas/Commitment'
-        signature:
-          type: string
-          description: The ECDSA signature of the commitment message
-          example: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1b"
-      required:
-        - commitment
-        - signature
-      example:
-        commitment:
-          commitment_type: 1
-          payload: ""
-          request_hash: "0x1234567890123456789012345678901234567890000000000000000000000000"
-          slasher: "0x1234567890123456789012345678901234567890"
-        signature: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1b"
-
-    SlotInfo:
-      type: object
-      properties:
-        slot:
-          type: integer
-          description: The L1 slot number
-          example: 1000
-        offerings:
-          type: array
-          items:
-            $ref: '#/components/schemas/Offering'
-          description: The list of chain offerings
-      required:
-        - slot
-        - offerings
-      example:
-        slot: 1000
-        offerings:
-          - chain_id: 1
-            commitment_types: [1, 2]
-          - chain_id: 10
-            commitment_types: [1]
-
-    SlotInfoResponse:
-      type: object
-      properties:
-        slots:
-          type: array
-          items:
-            $ref: '#/components/schemas/SlotInfo'
-          description: A list of slot infos
-      required:
-        - slots
-      example:
-        slots:
-          - slot: 1000
-            offerings:
-              - chain_id: 1
-                commitment_types: [1, 2]
-              - chain_id: 10
-                commitment_types: [1]
-          - slot: 1001
-            offerings:
-              - chain_id: 1
-                commitment_types: [1, 2]
-              - chain_id: 10
-                commitment_types: [1]
-
-    Offering:
-      type: object
-      properties:
-        chain_id:
-          type: integer
-          format: uint64
-          description: The id of the target chain
-          example: 1
-        commitment_types:
-          type: array
-          items:
-            type: integer
-            format: uint64
-          description: The types of commitments offered for the target chain
-          example: [1, 2]
-      required:
-        - chain_id
-        - commitment_types
-      example:
-        chain_id: 1
-        commitment_types: [1, 2]
-
-    FeeInfo:
-      type: object
-      properties:
-        payload:
-          type: string
-          format: byte
-          description: Opaque bytes containing fee info related to the commitment type
-          example: ""
-        commitment_type:
-          type: integer
-          format: uint64
-          description: Type of commitment being requested
-          example: 1
-      required:
-        - payload
-        - commitment_type
-      example:
-        payload: ""
-        commitment_type: 1
