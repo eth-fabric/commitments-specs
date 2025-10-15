@@ -375,12 +375,24 @@ components:
                 - payload
                 - request_hash
                 - slasher
+            nonce:
+              type: integer
+              format: uint64
+              description: The nonce used when signing
+              example: 123456
+            signing_id:
+              type: string
+              format: bytes32
+              description: The signing ID used when signing
+              example: "0x1111111111111111111111111111111111111111111111111111111111111111"
             signature:
               type: string
               description: The ECDSA signature of the commitment message
               example: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1b"
           required:
             - commitment
+            - nonce
+            - signing_id
             - signature
         id:
           oneOf:
