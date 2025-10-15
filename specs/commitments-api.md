@@ -72,6 +72,10 @@ class Commitment(Container):
 class SignedCommitment(Container):
     # The commitment message that was signed
     commitment: Commitment
+    # The nonce used when signing
+    nonce: uint64
+    # The signing ID used when signing
+    signing_id: Bytes32
     # The signature of the commitment message
     signature: ECDSASignature
 ```
@@ -154,6 +158,8 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"commitmentRequest","params":[{"c
       "request_hash": "0x1234567890123456789012345678901234567890000000000000000000000000",
       "slasher": "0x1234567890123456789012345678901234567890"
     },
+    "nonce": 123456,
+    "signing_id": "0x1111111111111111111111111111111111111111111111111111111111111111",
     "signature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1b"
   }
 }
@@ -192,6 +198,8 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"commitmentResult","params":[{"re
       "request_hash": "0x1234567890123456789012345678901234567890000000000000000000000000",
       "slasher": "0x1234567890123456789012345678901234567890"
     },
+    "nonce": 123456,
+    "signing_id": "0x1111111111111111111111111111111111111111111111111111111111111111",
     "signature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1b"
   }
 }
